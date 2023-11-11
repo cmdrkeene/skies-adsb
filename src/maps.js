@@ -78,22 +78,6 @@ export function init(scene, json, overrideOrigin = false) {
   for (const feature of json["features"]) {
     switch (feature["geometry"]["type"]) {
       case GEOJSON_GEOMETRY_TYPE_LINE_STRING: {
-        // Plots them, but treats them as polygons
-        // const points = feature["geometry"]["coordinates"].map(coord => {
-        //   const [x, y] = UTILS.getXY(coord)
-        //   return new THREE.Vector2(x * UTILS.SCALE, y * UTILS.SCALE)
-        // })
-        // const shape = new THREE.Shape(points)
-        // const geometry = new THREE.ShapeGeometry(shape)
-        // geometry.rotateX(Math.PI / 2)
-        // const edges = new THREE.EdgesGeometry(geometry)
-        // const lineSegments = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
-        //   color: MAP_COLOR,
-        //   linewidth: 2
-        // }))
-        // mapGroup.add(lineSegments)
-
-        // This works but the segments are fragmented
         const points = feature["geometry"]["coordinates"].flatMap(coord => {
           const [x, y] = UTILS.getXY(coord);
           return [x * UTILS.SCALE, y * UTILS.SCALE, 0]; // Flat coordinates with z = 0
@@ -104,7 +88,7 @@ export function init(scene, json, overrideOrigin = false) {
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
   
         // Create lines
-        const lines = new THREE.LineSegments(
+        const lines = new THREE.Line(
           geometry, 
           new THREE.LineBasicMaterial({
             color: ROAD_COLOR,

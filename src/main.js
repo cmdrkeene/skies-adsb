@@ -540,9 +540,13 @@ if (process.env.OPTIONAL_GEOJSON_MAP) {
       mapGroup = res.mapGroup
       poi = res.poi
 
+      // Log the POI keys
       console.log(Object.keys(poi))
 
-      poiController = gui.add(settings, 'poi', Object.keys(poi)).onChange(key => {
+      // Sort the POI keys
+      const poiOptions = Object.keys(poi).sort()
+
+      poiController = gui.add(settings, 'poi', poiOptions).onChange(key => {
         if (key !== MAPS.POI_KEY_CURRENT_LNG_LAT) {
           console.log(poi[key])
           const lng = poi[key].longitude

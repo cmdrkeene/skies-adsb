@@ -6,7 +6,9 @@ export const map = {}
 export const poiLabels = []
 
 const TEXT_COLOR = new THREE.Color(0x00ff00)
-const MAP_COLOR = new THREE.Color(0x81efff)
+const POINT_COLOR = new THREE.Color(0xff00ff)
+const BORDER_COLOR = new THREE.Color(0x81efff)
+const LAND_COLOR = new THREE.Color(0x00ff00)
 const ROAD_COLOR = new THREE.Color(0xff0000)
 
 const TEXT_FONT = "./static/Orbitron-VariableFont_wght.ttf"
@@ -26,7 +28,7 @@ export function init(scene, json, overrideOrigin = false) {
 
   const mapGroup = new THREE.Group()
 
-  const refPointMaterial = new THREE.PointsMaterial({ size: 0.5, color: 0xff00ff })
+  const refPointMaterial = new THREE.PointsMaterial({ size: 0.5, color: POINT_COLOR })
 
   const poiVertices = []
 
@@ -75,7 +77,6 @@ export function init(scene, json, overrideOrigin = false) {
     }
   }
 
-  console.log("READING THE FEATURES")
   for (const feature of json["features"]) {
     switch (feature["geometry"]["type"]) {
       case GEOJSON_GEOMETRY_TYPE_LINE_STRING: {
@@ -138,7 +139,7 @@ export function init(scene, json, overrideOrigin = false) {
           const lineSegments = new THREE.LineSegments(
             edges, 
             new THREE.LineBasicMaterial({
-              color: MAP_COLOR,
+              color: BORDER_COLOR,
               linewidth: 2
             })
           );

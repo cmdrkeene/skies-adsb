@@ -16,6 +16,7 @@ const TEXT_FONT = "./static/Orbitron-VariableFont_wght.ttf"
 
 const GEOJSON_GEOMETRY_TYPE_LINE_STRING = "LineString"
 const GEOJSON_GEOMETRY_TYPE_POLYGON = "Polygon"
+const GEOJSON_GEOMETRY_TYPE_MULTI_POLYGON = "MultiPolygon"
 const GEOJSON_GEOMETRY_TYPE_POINT = "Point"
 
 export const POI_KEY_DEFAULT_ORIGIN = "default origin"
@@ -101,20 +102,48 @@ export function init(scene, json, overrideOrigin = false) {
         mapGroup.add(lines);
       }
         break;
-      case GEOJSON_GEOMETRY_TYPE_POLYGON: {
-        const points = feature["geometry"]["coordinates"][0].map(coord => {
-          const [x, y] = UTILS.getXY(coord)
-          return new THREE.Vector2(x * UTILS.SCALE, y * UTILS.SCALE)
-        })
-        const shape = new THREE.Shape(points)
-        const geometry = new THREE.ShapeGeometry(shape)
-        geometry.rotateX(Math.PI / 2)
-        const edges = new THREE.EdgesGeometry(geometry)
-        const lineSegments = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
-          color: MAP_COLOR,
-          linewidth: 2
-        }))
-        mapGroup.add(lineSegments)
+      case GEOJSON_GEOMETRY_TYPE_POLYGON:
+      case GEOJSON_GEOMETRY_TYPE_MULTI_POLYGON: {
+        // Handle both Polygon and MultiPolygon types
+        const polygons = feature["geometry"]["type"] === GEOJSON_GEOMETRY_TYPE_POLYGON
+          ? [feature["geometry"]["coordinates"]]
+          : feature["geometry"]["coordinates"];
+  
+        for (const polygon of polygons) {
+          // Handle exterior and holes
+          const exteriorCoordinates = polygon[0];
+          const holesCoordinates = polygon.slice(1);
+  
+          // Convert exterior ring to Vector2 and create shape
+          const exteriorPoints = exteriorCoordinates.map(coord => {
+            const [x, y] = UTILS.getXY(coord);
+            return new THREE.Vector2(x * UTILS.SCALE, y * UTILS.SCALE);
+          });
+          const shape = new THREE.Shape(exteriorPoints);
+  
+          // Add holes if any
+          for (const hole of holesCoordinates) {
+            const holePoints = hole.map(coord => {
+              const [x, y] = UTILS.getXY(coord);
+              return new THREE.Vector2(x * UTILS.SCALE, y * UTILS.SCALE);
+            });
+            const holeShape = new THREE.Path(holePoints);
+            shape.holes.push(holeShape);
+          }
+  
+          // Create geometry and add to scene
+          const geometry = new THREE.ShapeGeometry(shape);
+          geometry.rotateX(Math.PI / 2);
+          const edges = new THREE.EdgesGeometry(geometry);
+          const lineSegments = new THREE.LineSegments(
+            edges, 
+            new THREE.LineBasicMaterial({
+              color: MAP_COLOR,
+              linewidth: 2
+            })
+          );
+          mapGroup.add(lineSegments);
+        }
       }
         break;
       case GEOJSON_GEOMETRY_TYPE_POINT: {

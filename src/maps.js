@@ -5,7 +5,7 @@ import * as UTILS from './utils.js'
 export const map = {}
 export const poiLabels = []
 
-const TEXT_COLOR = new THREE.Color(0xed225d)
+const TEXT_COLOR = new THREE.Color(0x00ff00)
 const MAP_COLOR = new THREE.Color(0x81efff)
 const ROAD_COLOR = new THREE.Color(0xff0000)
 

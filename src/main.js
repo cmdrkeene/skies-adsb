@@ -108,6 +108,48 @@ camera.position.z = 10
 // controls
 const controls = new OrbitControls(camera, renderer.domElement)
 
+// Listen for keyboard events
+var speed = 0.2;
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    deselectAirCraftAndHideHUD()
+  } else if (e.key === 'h') {
+    resetCameraToHome()
+    e.stopPropagation()
+  } else if (e.key === 'f') {
+    HUD.toggleFollow()
+  } else if (e.key === 's') {
+    HUD.toggleSettings()
+    showDatGui = !showDatGui
+    if (showDatGui) {
+      gui.show()
+    } else {
+      gui.hide()
+    }
+    e.stopPropagation()
+  } else if (e.key === 'i') {
+    HUD.toggleDialog()
+  } else if (e.key === 'g') {
+    showGridController.setValue(!showGridController.getValue())
+  } else if (e.key === 'm') {
+    showMapController.setValue(!showMapController.getValue())
+  } else if (e.key === 'r') {
+    reloadMap()
+  } else if (e.key === '+' || e.key === '=') {
+    camera.translateZ(-speed);
+  } else if (e.key === '-' || e.key === '_') {
+    camera.translateZ(speed);
+  } else if (e.key === 'ArrowUp') {
+    camera.translateY(speed)
+  } else if (e.key === 'ArrowDown') {
+    camera.translateY(-speed)
+  } else if (e.key === 'ArrowLeft') {
+    camera.translateX(-speed)
+  } else if (e.key === 'ArrowRight') {
+    camera.translateX(speed)
+  }
+})
+
 //
 // track if mouse click causes camera changes via OrbitControls
 // used to help toggle display of HUD and prevent the HUD

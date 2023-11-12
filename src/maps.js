@@ -6,37 +6,46 @@ export const map = {}
 export const poiLabels = []
 
 // Default theme
-// const TEXT_COLOR = new THREE.Color(0xff00ff)
-// const POINT_COLOR = new THREE.Color(0xff00ff)
-// const BORDER_COLOR = new THREE.Color(0x81efff)
-// const LAND_COLOR = new THREE.Color(0x00ff00)
-// const WATER_COLOR = new THREE.Color(0x0000ff)
-// const ROAD_COLOR = new THREE.Color(0xff0000)
+var GRASS_COLOR = new THREE.Color(0x2D3D3C)
+var TEXT_COLOR = new THREE.Color(0xff00ff)
+var POINT_COLOR = new THREE.Color(0xff00ff)
+var BORDER_COLOR = new THREE.Color(0x81efff)
+var LAND_COLOR = new THREE.Color(0x00ff00)
+var WATER_COLOR = new THREE.Color(0x0000ff)
+var ROAD_COLOR = new THREE.Color(0xff0000)
 
-// Realistic theme
-// const TEXT_COLOR =  new THREE.Color(0xff00ff) // Magenta
-// const POINT_COLOR = new THREE.Color(0xff00ff) // Magenta
-// const BORDER_COLOR = new THREE.Color(0xa0a0a0) // Light gray
-// const LAND_COLOR = new THREE.Color(0x556b2f) // Dark olive green
-// const WATER_COLOR = new THREE.Color(0x4682b4) // Steel blue
-// const ROAD_COLOR = new THREE.Color(0x808080) // Gray
-
-// Mapbox theme
-// const TEXT_COLOR =  new THREE.Color(0xff00ff)
-// const POINT_COLOR = new THREE.Color(0xff00ff)
-// const BORDER_COLOR = new THREE.Color(0xCCCCCC)
-// const LAND_COLOR = new THREE.Color(0xEBE7E4)
-// const WATER_COLOR = new THREE.Color(0x9AC9E6)
-// const ROAD_COLOR = new THREE.Color(0xF4B673)
-
-// Apple Maps Night theme
-const GRASS_COLOR = new THREE.Color(0x2D3D3C)
-const TEXT_COLOR =  new THREE.Color(0xCED0D6)
-const POINT_COLOR = new THREE.Color(0xD89453)
-const BORDER_COLOR = new THREE.Color(0x2A2F3B)
-const LAND_COLOR = new THREE.Color(0x2C2D2F)
-const WATER_COLOR = new THREE.Color(0x384364)
-const ROAD_COLOR = new THREE.Color(0x4C4F51)
+// Pick a theme
+var COLOR_THEME = "apple_maps_night"
+switch (COLOR_THEME) {
+  case "realistic":
+    // Realistic theme
+    TEXT_COLOR =  new THREE.Color(0xff00ff) // Magenta
+    POINT_COLOR = new THREE.Color(0xff00ff) // Magenta
+    BORDER_COLOR = new THREE.Color(0xa0a0a0) // Light gray
+    LAND_COLOR = new THREE.Color(0x556b2f) // Dark olive green
+    WATER_COLOR = new THREE.Color(0x4682b4) // Steel blue
+    ROAD_COLOR = new THREE.Color(0x808080) // Gray
+    break
+  case "apple_maps_night":
+    // Apple Maps Night theme
+    GRASS_COLOR = new THREE.Color(0x2D3D3C)
+    TEXT_COLOR =  new THREE.Color(0xCED0D6)
+    POINT_COLOR = new THREE.Color(0xD89453)
+    BORDER_COLOR = new THREE.Color(0x2A2F3B)
+    LAND_COLOR = new THREE.Color(0x2C2D2F)
+    WATER_COLOR = new THREE.Color(0x384364)
+    ROAD_COLOR = new THREE.Color(0x4C4F51)
+    break
+  case "mapbox":
+    // Mapbox theme
+    TEXT_COLOR =  new THREE.Color(0xff00ff)
+    POINT_COLOR = new THREE.Color(0xff00ff)
+    BORDER_COLOR = new THREE.Color(0xCCCCCC)
+    LAND_COLOR = new THREE.Color(0xEBE7E4)
+    WATER_COLOR = new THREE.Color(0x9AC9E6)
+    ROAD_COLOR = new THREE.Color(0xF4B673)
+    break
+}
 
 // Default Font
 const TEXT_FONT = "./static/Orbitron-VariableFont_wght.ttf"
@@ -239,18 +248,28 @@ export function init(scene, json, overrideOrigin = false) {
     }
   }
 
+  // Draw other layers
+
+  // Add Points of Interest
   const poiGeometry = new THREE.BufferGeometry().setFromPoints(poiVertices)
   const poiMesh = new THREE.Points(poiGeometry, refPointMaterial)
   mapGroup.add(poiMesh)
 
   // Create a large circle for water
-  const waterGeometry = new THREE.CircleGeometry(1050, 32);
-  const waterMaterial = new THREE.MeshBasicMaterial({ color: WATER_COLOR, side: THREE.DoubleSide });
+  const waterGeometry = new THREE.CircleGeometry(512, 32);
+
+  // Create a water material from image texture static/water.jpg
+  const waterTexture = new THREE.TextureLoader().load('./static/ocean-tile-3.jpg');
+  waterTexture.wrapS = THREE.RepeatWrapping;
+  waterTexture.wrapT = THREE.RepeatWrapping;
+  waterTexture.repeat.set( 128, 128 );
+  const waterMaterial = new THREE.MeshBasicMaterial({ map: waterTexture, side: THREE.DoubleSide });
+  // const waterMaterial = new THREE.MeshBasicMaterial({ color: WATER_COLOR, side: THREE.DoubleSide });
   const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
 
   // Position the water mesh below your land masses
   waterMesh.rotateX(-Math.PI / 2);
-  waterMesh.position.y = -1; // Adjust this value based on your map's elevation
+  waterMesh.position.y = -0.1; // Adjust this value based on your map's elevation
 
   // Add water mesh to your map group or scene
   mapGroup.add(waterMesh);

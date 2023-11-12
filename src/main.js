@@ -105,7 +105,6 @@ followCamera.rotation.order = 'YXZ'
 let camera = orbitCamera
 camera.position.z = 10
 
-
 // controls
 const controls = new OrbitControls(camera, renderer.domElement)
 
@@ -137,7 +136,6 @@ scene.add(light.target)
 
 // skybox
 const skybox = new SKYBOX.Skybox(scene)
-
 
 // polar grid
 const radius = 500

@@ -22,18 +22,24 @@ export const poiLabels = []
 // const ROAD_COLOR = new THREE.Color(0x808080) // Gray
 
 // Mapbox theme
-const TEXT_COLOR =  new THREE.Color(0xff00ff)
-const POINT_COLOR = new THREE.Color(0xff00ff)
-const BORDER_COLOR = new THREE.Color(0xCCCCCC)
-const LAND_COLOR = new THREE.Color(0xEBE7E4)
-const WATER_COLOR = new THREE.Color(0x9AC9E6)
-const ROAD_COLOR = new THREE.Color(0xF4B673)
+// const TEXT_COLOR =  new THREE.Color(0xff00ff)
+// const POINT_COLOR = new THREE.Color(0xff00ff)
+// const BORDER_COLOR = new THREE.Color(0xCCCCCC)
+// const LAND_COLOR = new THREE.Color(0xEBE7E4)
+// const WATER_COLOR = new THREE.Color(0x9AC9E6)
+// const ROAD_COLOR = new THREE.Color(0xF4B673)
+
+// Apple Maps Night theme
+const GRASS_COLOR = new THREE.Color(0x2D3D3C)
+const TEXT_COLOR =  new THREE.Color(0xCED0D6)
+const POINT_COLOR = new THREE.Color(0xD89453)
+const BORDER_COLOR = new THREE.Color(0x2A2F3B)
+const LAND_COLOR = new THREE.Color(0x2C2D2F)
+const WATER_COLOR = new THREE.Color(0x384364)
+const ROAD_COLOR = new THREE.Color(0x4C4F51)
 
 // Default Font
 const TEXT_FONT = "./static/Orbitron-VariableFont_wght.ttf"
-
-// Road width
-const ROAD_WIDTH = 10 // Note: linewidth might not work as expected in WebGL renderer
 
 // Supported GeoJSON geometry types
 const GEOJSON_GEOMETRY_TYPE_LINE_STRING = "LineString"
@@ -100,27 +106,56 @@ export function init(scene, json, overrideOrigin = false) {
   for (const feature of json["features"]) {
     switch (feature["geometry"]["type"]) {
       case GEOJSON_GEOMETRY_TYPE_LINE_STRING: {
-        const points = feature["geometry"]["coordinates"].flatMap(coord => {
-          const [x, y] = UTILS.getXY(coord);
-          return [x * UTILS.SCALE, y * UTILS.SCALE, 0]; // Flat coordinates with z = 0
-        });
-  
-        // Create a buffer geometry
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
-  
-        // Create lines
-        const lines = new THREE.Line(
-          geometry, 
-          new THREE.LineBasicMaterial({
-            color: ROAD_COLOR,
-            linewidth: ROAD_WIDTH
-          })
-        );
-        lines.rotateX(Math.PI / 2);
+        const mode = "tube";
         
-        // Add lines to the map group
-        mapGroup.add(lines);
+        // Thin lines
+        if (mode == "line") {
+          const points = feature["geometry"]["coordinates"].flatMap(coord => {
+            const [x, y] = UTILS.getXY(coord);
+            return [x * UTILS.SCALE, y * UTILS.SCALE, 0]; // Flat coordinates with z = 0
+          });
+    
+          // Create a buffer geometry
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+    
+          // Create lines
+          const lines = new THREE.Line(
+            geometry, 
+            new THREE.LineBasicMaterial({
+              color: ROAD_COLOR,
+              linewidth: 2 // Note: linewidth might not work as expected in WebGL renderer
+            })
+          );
+          lines.rotateX(Math.PI / 2);
+          
+          // Add lines to the map group
+          mapGroup.add(lines);
+        } else {
+          // Tube geometry to make roads thicker
+          const points = feature["geometry"]["coordinates"].map(coord => {
+              const [x, y] = UTILS.getXY(coord);
+              return new THREE.Vector3(x * UTILS.SCALE, y * UTILS.SCALE, 0); // Flat coordinates with z = 0
+          });
+      
+          // Create a curve path from points
+          const curvePath = new THREE.CurvePath();
+          for (let i = 1; i < points.length; i++) {
+              const start = points[i - 1];
+              const end = points[i];
+              const curve = new THREE.LineCurve3(start, end);
+              curvePath.add(curve);
+          }
+      
+          // Create the TubeGeometry
+          const tubeGeometry = new THREE.TubeGeometry(curvePath, 32, 0.05, 3, false);
+          const tubeMaterial = new THREE.MeshBasicMaterial({ color: ROAD_COLOR });
+          const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
+      
+          // Rotate and add the tube mesh to the map group
+          tubeMesh.rotateX(Math.PI / 2);
+          mapGroup.add(tubeMesh);
+        }
       }
         break;
       case GEOJSON_GEOMETRY_TYPE_POLYGON:
@@ -209,7 +244,7 @@ export function init(scene, json, overrideOrigin = false) {
   mapGroup.add(poiMesh)
 
   // Create a large circle for water
-  const waterGeometry = new THREE.CircleGeometry(1010, 32);
+  const waterGeometry = new THREE.CircleGeometry(1050, 32);
   const waterMaterial = new THREE.MeshBasicMaterial({ color: WATER_COLOR, side: THREE.DoubleSide });
   const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
 

@@ -31,7 +31,7 @@ switch (COLOR_THEME) {
     GRASS_COLOR = new THREE.Color(0x2D3D3C)
     TEXT_COLOR =  new THREE.Color(0xCED0D6)
     POINT_COLOR = new THREE.Color(0xD89453)
-    BORDER_COLOR = new THREE.Color(0x2A2F3B)
+    BORDER_COLOR = new THREE.Color(0x81efff)
     LAND_COLOR = new THREE.Color(0x2C2D2F)
     WATER_COLOR = new THREE.Color(0x384364)
     ROAD_COLOR = new THREE.Color(0x4C4F51)
@@ -61,6 +61,7 @@ export const POI_KEY_CURRENT_LNG_LAT = "current lng/lat"
 
 export function init(scene, json, overrideOrigin = false) {
 
+  const borderGroup = new THREE.Group()
   const mapGroup = new THREE.Group()
 
   const refPointMaterial = new THREE.PointsMaterial({ size: 0.5, color: POINT_COLOR })
@@ -209,10 +210,10 @@ export function init(scene, json, overrideOrigin = false) {
           const edges = new THREE.EdgesGeometry(geometry);
           const borderMaterial = new THREE.LineBasicMaterial({
             color: BORDER_COLOR,
-            linewidth: 2 // Note: linewidth might not work as expected in WebGL renderer
+            linewidth: 1 // Note: linewidth might not work as expected in WebGL renderer
           });
           const lineSegments = new THREE.LineSegments(edges, borderMaterial);
-          mapGroup.add(lineSegments);
+          borderGroup.add(lineSegments);
         }
       }
       break;
@@ -274,9 +275,11 @@ export function init(scene, json, overrideOrigin = false) {
   // Add water mesh to your map group or scene
   mapGroup.add(waterMesh);
 
+  scene.add(borderGroup)
   scene.add(mapGroup)
 
   return {
+    borderGroup,
     mapGroup,
     originId,
     poi

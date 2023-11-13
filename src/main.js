@@ -50,6 +50,7 @@ let settings = {
   skybox: 'dawn+dusk',
   "show map": true,
   "show grid": false,
+  "show border": true,
   poi: []
 }
 
@@ -71,11 +72,18 @@ const reloadMapButton = {
 }
 gui.add(reloadMapButton, "set origin")
 
+const showBorderController = gui.add(settings, 'show border').onChange(visible => {
+  if (borderGroup !== undefined) {
+    borderGroup.visible = visible
+  }
+})
+
 const showMapController = gui.add(settings, 'show map').onChange(visible => {
   if (mapGroup !== undefined) {
     mapGroup.visible = visible
   }
 })
+
 const showGridController = gui.add(settings, 'show grid').onChange(isVisible => {
   console.log(`show grid: ${isVisible}`)
   polarGridHelper.visible = isVisible
@@ -104,6 +112,7 @@ const followCamera = new THREE.PerspectiveCamera(75, UTILS.sizes.width / UTILS.s
 followCamera.rotation.order = 'YXZ'
 let camera = orbitCamera
 camera.position.z = 10
+camera.position.y = 5
 
 // controls
 const controls = new OrbitControls(camera, renderer.domElement)
@@ -135,6 +144,8 @@ document.addEventListener('keydown', (e) => {
     showMapController.setValue(!showMapController.getValue())
   } else if (e.key === 'r') {
     reloadMap()
+  } else if (e.key === 'b') {
+    showBorderController.setValue(!showBorderController.getValue())
   }
 
   // Zoom Control
@@ -152,9 +163,9 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'ArrowDown') {
       controls.target.y -= speed // tilt down
     } else if (e.key === 'ArrowLeft') {
-      controls.target.x -= speed // tilt left
+      // go to previous aircraft
     } else if (e.key === 'ArrowRight') {
-      controls.target.x += speed // tilt right
+      // go to next aircraft
     }
   } else {
     // Rotate Control
@@ -208,9 +219,6 @@ const color2 = color1
 const polarGridHelper = new THREE.PolarGridHelper(radius, radials, circles, divisions, color1, color2)
 polarGridHelper.visible = false
 scene.add(polarGridHelper)
-
-
-
 
 //
 // draw
@@ -549,12 +557,14 @@ document.addEventListener('visibilitychange', handleVisibilityChange, false);
 // load maps, origin, and start websocket connection
 //
 
+let borderGroup = undefined
 let mapGroup = undefined
 let poi = undefined
 let poiController = undefined
 
 function loadFallbackGridPlane() {
   gui.remove(showMapController)
+  gui.remove(showBorderController)
   showGridController.setValue(true)
 
   //
@@ -597,6 +607,7 @@ if (process.env.OPTIONAL_GEOJSON_MAP) {
       const res = MAPS.init(scene, JSON.parse(data))
       console.log(res)
       mapGroup = res.mapGroup
+      borderGroup = res.borderGroup
       poi = res.poi
 
       // Log the POI keys
@@ -652,6 +663,8 @@ function reloadMap() {
   console.log('[reloadMap...]')
   scene.remove(mapGroup)
   mapGroup = undefined
+  scene.remove(borderGroup)
+  borderGroup = undefined
   const loader = new THREE.FileLoader();
   loader.load(`geojson/${process.env.OPTIONAL_GEOJSON_MAP}`,
     (data) => {
@@ -664,6 +677,7 @@ function reloadMap() {
 
       const res = MAPS.init(scene, JSON.parse(data), true)
       mapGroup = res.mapGroup
+      borderGroup = res.borderGroup
       console.log(res)
 
       resetCameraToHome()

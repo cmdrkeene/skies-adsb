@@ -109,7 +109,7 @@ camera.position.z = 10
 const controls = new OrbitControls(camera, renderer.domElement)
 
 // Listen for keyboard events
-var speed = 0.2;
+var speed = 0.1;
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     deselectAirCraftAndHideHUD()
@@ -135,18 +135,38 @@ document.addEventListener('keydown', (e) => {
     showMapController.setValue(!showMapController.getValue())
   } else if (e.key === 'r') {
     reloadMap()
-  } else if (e.key === '+' || e.key === '=') {
+  }
+
+  // Zoom Control
+  if (e.key === '+' || e.key === '=') {
     camera.translateZ(-speed);
   } else if (e.key === '-' || e.key === '_') {
     camera.translateZ(speed);
-  } else if (e.key === 'ArrowUp') {
-    camera.translateY(speed)
-  } else if (e.key === 'ArrowDown') {
-    camera.translateY(-speed)
-  } else if (e.key === 'ArrowLeft') {
-    camera.translateX(-speed)
-  } else if (e.key === 'ArrowRight') {
-    camera.translateX(speed)
+  }
+
+  // Camera Control
+  if (e.shiftKey) {
+    // Tilt Control - Changes the target of the camera
+    if (e.key === 'ArrowUp') {
+      controls.target.y += speed // tilt up
+    } else if (e.key === 'ArrowDown') {
+      controls.target.y -= speed // tilt down
+    } else if (e.key === 'ArrowLeft') {
+      controls.target.x -= speed // tilt left
+    } else if (e.key === 'ArrowRight') {
+      controls.target.x += speed // tilt right
+    }
+  } else {
+    // Rotate Control
+    if (e.key === 'ArrowUp') {
+      camera.translateY(speed)
+    } else if (e.key === 'ArrowDown') {
+      camera.translateY(-speed)
+    } else if (e.key === 'ArrowLeft') {
+      camera.translateX(-speed)
+    } else if (e.key === 'ArrowRight') {
+      camera.translateX(speed)
+    }
   }
 })
 
@@ -161,7 +181,6 @@ controls.addEventListener('change', (event) => {
   light.position.copy(camera.position)
   light.target.position.copy(controls.target)
 })
-
 
 // axes helper
 const axesHelper = new THREE.AxesHelper()
